@@ -17,7 +17,7 @@ from octodns.yaml import safe_load
 from octodns.zone import Zone
 
 from helpers import DynamicProvider, GeoProvider, NoSshFpProvider, \
-    SimpleProvider, TemporaryDirectory
+    SimpleProvider, TemporaryDirectory, RootNsProvider
 
 config_dir = join(dirname(__file__), 'config')
 
@@ -118,12 +118,12 @@ class TestManager(TestCase):
             environ['YAML_TMP_DIR'] = tmpdir.dirname
             tc = Manager(get_config_filename('simple.yaml')) \
                 .sync(dry_run=False)
-            self.assertEquals(21, tc)
+            self.assertEquals(22, tc)
 
             # try with just one of the zones
             tc = Manager(get_config_filename('simple.yaml')) \
                 .sync(dry_run=False, eligible_zones=['unit.tests.'])
-            self.assertEquals(15, tc)
+            self.assertEquals(16, tc)
 
             # the subzone, with 2 targets
             tc = Manager(get_config_filename('simple.yaml')) \
@@ -138,18 +138,18 @@ class TestManager(TestCase):
             # Again with force
             tc = Manager(get_config_filename('simple.yaml')) \
                 .sync(dry_run=False, force=True)
-            self.assertEquals(21, tc)
+            self.assertEquals(22, tc)
 
             # Again with max_workers = 1
             tc = Manager(get_config_filename('simple.yaml'), max_workers=1) \
                 .sync(dry_run=False, force=True)
-            self.assertEquals(21, tc)
+            self.assertEquals(22, tc)
 
             # Include meta
             tc = Manager(get_config_filename('simple.yaml'), max_workers=1,
                          include_meta=True) \
                 .sync(dry_run=False, force=True)
-            self.assertEquals(25, tc)
+            self.assertEquals(26, tc)
 
     def test_eligible_targets(self):
         with TemporaryDirectory() as tmpdir:
@@ -175,13 +175,13 @@ class TestManager(TestCase):
                 fh.write('---\n{}')
 
             changes = manager.compare(['in'], ['dump'], 'unit.tests.')
-            self.assertEquals(15, len(changes))
+            self.assertEquals(16, len(changes))
 
             # Compound sources with varying support
             changes = manager.compare(['in', 'nosshfp'],
                                       ['dump'],
                                       'unit.tests.')
-            self.assertEquals(14, len(changes))
+            self.assertEquals(15, len(changes))
 
             with self.assertRaises(ManagerException) as ctx:
                 manager.compare(['nope'], ['dump'], 'unit.tests.')
@@ -191,6 +191,7 @@ class TestManager(TestCase):
         simple = SimpleProvider()
         geo = GeoProvider()
         dynamic = DynamicProvider()
+        rootns = RootNsProvider()
         nosshfp = NoSshFpProvider()
 
         self.assertFalse(_AggregateTarget([simple, simple]).SUPPORTS_GEO)
@@ -202,6 +203,11 @@ class TestManager(TestCase):
         self.assertFalse(_AggregateTarget([simple, dynamic]).SUPPORTS_DYNAMIC)
         self.assertFalse(_AggregateTarget([dynamic, simple]).SUPPORTS_DYNAMIC)
         self.assertTrue(_AggregateTarget([dynamic, dynamic]).SUPPORTS_DYNAMIC)
+
+        self.assertFalse(_AggregateTarget([simple, simple]).SUPPORTS_ROOT_NS)
+        self.assertFalse(_AggregateTarget([simple, rootns]).SUPPORTS_ROOT_NS)
+        self.assertFalse(_AggregateTarget([rootns, simple]).SUPPORTS_ROOT_NS)
+        self.assertTrue(_AggregateTarget([rootns, rootns]).SUPPORTS_ROOT_NS)
 
         zone = Zone('unit.tests.', [])
         record = Record.new(zone, 'sshfp', {

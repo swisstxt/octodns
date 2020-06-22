@@ -230,9 +230,13 @@ class Ns1Provider(BaseProvider):
             endpoint: my.nsone.endpoint # Default: api.nsone.net
             ignore-ssl-errors: true     # Default: false
             follow_pagination: false    # Default: true
+        # Needed if you want to manage your root NS records with octodns
+        # When you enable this you MUST specify a root NS.
+        manage_root_ns: true
     '''
     SUPPORTS_GEO = True
     SUPPORTS_DYNAMIC = True
+    SUPPORTS_ROOT_NS = True
     SUPPORTS = set(('A', 'AAAA', 'ALIAS', 'CAA', 'CNAME', 'MX', 'NAPTR',
                     'NS', 'PTR', 'SPF', 'SRV', 'TXT'))
 

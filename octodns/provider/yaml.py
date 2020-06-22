@@ -104,6 +104,7 @@ class YamlProvider(BaseProvider):
     '''
     SUPPORTS_GEO = True
     SUPPORTS_DYNAMIC = True
+    SUPPORTS_ROOT_NS = True
     SUPPORTS = set(('A', 'AAAA', 'ALIAS', 'CAA', 'CNAME', 'MX', 'NAPTR', 'NS',
                     'PTR', 'SSHFP', 'SPF', 'SRV', 'TXT'))
 
@@ -120,6 +121,7 @@ class YamlProvider(BaseProvider):
         self.default_ttl = default_ttl
         self.enforce_order = enforce_order
         self.populate_should_replace = populate_should_replace
+        self.manage_root_ns = True
 
     def _populate_from_file(self, filename, zone, lenient):
         with open(filename, 'r') as fh:
