@@ -592,7 +592,7 @@ class TestRoute53Provider(TestCase):
         provider.populate(got)
         # Make sure we got what we expected
         changes = self.expected.changes(got, GeoProvider())
-        self.assertEquals(0, len(changes))
+        self.assertEquals(1, len(changes))
         stubber.assert_no_pending_responses()
 
         # Populate a zone that doesn't exist
